@@ -1,0 +1,35 @@
+{% extends 'app/base.html' %}
+
+{% block body_class %}page-decks{% endblock %}
+
+
+
+{% block content %}
+<div style="padding-top: 2rem;">
+    <h2 class="page-title">Метовые колоды</h2>
+
+    <div class="decks-grid">
+        {% for deck in decks %}
+        <div class="deck-card">
+            <div class="card-images">
+                {% for deck_card in deck.deck_cards.all %}
+                <img src="{{ deck_card.card.icon_url }}" alt="{{ deck_card.card.name }}" class="card-img"
+                    title="{{ deck_card.card.name }}">
+                {% endfor %}
+            </div>
+
+            <div class="deck-stats" style="margin-top: 1rem;">
+                <div class="deck-stat-item trophy-stat">
+                    <span class="stat-icon">🏆</span>
+                    <span class="stat-value">{{ deck.win_rate|default:"-" }}%</span>
+                </div>
+                <div class="deck-stat-item elixir-stat">
+                    <span class="stat-icon">💧</span>
+                    <span class="stat-value">{{ deck.avg_elixir|default:"-" }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

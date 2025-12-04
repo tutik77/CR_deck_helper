@@ -1,0 +1,125 @@
+{% extends 'app/base.html' %}
+
+{% block body_class %}page-decks{% endblock %}
+
+{% block content %}
+<div class="recommend-page">
+    <div class="recommend-hero-card">
+        <div class="recommend-hero-header">
+            <h2>Подбор колоды по тегу игрока</h2>
+            <p>Введи свой тег из Clash Royale, и мы подберём колоды, которые лучше всего подходят под твой аккаунт.</p>
+        </div>
+
+        <form method="post" class="recommend-form">
+            {% csrf_token %}
+            <label for="player_tag" class="field-label">Тег игрока Clash Royale</label>
+            <div class="recommend-form-row">
+                <input type="text"
+                       id="player_tag"
+                       name="player_tag"
+                       value="{{ player_tag|default_if_none:'' }}"
+                       class="input-clash"
+                       placeholder="#ABC123XYZ">
+                <button type="submit" class="btn-clash">Подобрать колоды</button>
+            </div>
+            <p class="field-hint">Скопируй тег из профиля Clash Royale. Символ # можно не указывать.</p>
+        </form>
+
+        {% if error %}
+            <div class="alert alert-error">
+                {{ error }}
+            </div>
+        {% elif info %}
+            <div class="alert alert-info">
+                {{ info }}
+            </div>
+        {% endif %}
+
+        {% if player %}
+            <div class="player-summary-card">
+                <div class="player-summary-main">
+                    <div>
+                        <div class="player-name">{{ player.name }}</div>
+                        <div class="player-tag">{{ player.tag }}</div>
+                    </div>
+                    <div class="player-level">Уровень {{ player.exp_level }}</div>
+                </div>
+                <div class="player-summary-stats">
+                    <div class="player-stat">
+                        <span class="player-stat-icon">🏆</span>
+                        <span class="player-stat-label">Трофеи</span>
+                        <span class="player-stat-value">{{ player.trophies }}</span>
+                    </div>
+                    {% if player.best_trophies %}
+                    <div class="player-stat">
+                        <span class="player-stat-icon">⭐</span>
+                        <span class="player-stat-label">Лучший сезон</span>
+                        <span class="player-stat-value">{{ player.best_trophies }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="player-stat">
+                        <span class="player-stat-icon">🃏</span>
+                        <span class="player-stat-label">Карт</span>
+                        <span class="player-stat-value">{{ player.cards|length }}</span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="recommend-results">
+        {% if recommendations %}
+            <div class="recommend-results-header">
+                <h3>Лучшие колоды под твой аккаунт</h3>
+                <p class="recommend-results-subtitle">
+                    Сортировка по количеству доступных карт и их эффективным уровням.
+                </p>
+            </div>
+
+            <div class="decks-grid">
+                {% for item in recommendations %}
+                <div class="deck-card">
+                    <div class="card-images">
+                        {% for card_info in item.cards %}
+                        <div class="card-wrapper {% if not card_info.level %}card-locked{% endif %}">
+                            <img src="{{ card_info.card.icon_url }}"
+                                 alt="{{ card_info.card.name }}"
+                                 class="card-img"
+                                 title="{{ card_info.card.name }}">
+                            <span class="card-level-badge {% if not card_info.level %}card-level-badge-locked{% endif %}">
+                                {% if card_info.level %}
+                                    lvl {{ card_info.effective_level }}
+                                {% else %}
+                                    нет
+                                {% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="deck-stats deck-stats-extended">
+                        <div class="deck-stat-item trophy-stat">
+                            <span class="stat-icon">✅</span>
+                            <span class="stat-label">Открыто</span>
+                            <span class="stat-value">{{ item.owned_cards_count }}/8</span>
+                        </div>
+                        <div class="deck-stat-item">
+                            <span class="stat-icon">💧</span>
+                            <span class="stat-label">Эликсир</span>
+                            <span class="stat-value">{{ item.deck.avg_elixir|default:"-" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% elif player and not error %}
+            <p class="recommend-empty">Для этого профиля пока не удалось подобрать подходящие колоды.</p>
+        {% else %}
+            <p class="recommend-placeholder">
+                Введи тег игрока, чтобы получить персональные рекомендации из базы метовых колод.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
